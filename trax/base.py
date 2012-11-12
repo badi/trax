@@ -1,11 +1,11 @@
 
 
-CHECKPOINT_FILE_MODE = 'a'
+CHECKPOINT_FILE_MODE = 'w'
 LOG_FILE_MODE = 'w'
 
 class AbstractTransactional(object):
 
-	def __init__(self, checkpoint=None, log=None, checkpoint_mode=CHECKPOINT_FILE_MODE, log_mode=LOG_FILE_MODE):
+	def __init__(self, checkpoint='transactional.cpt', log='transactional.log', checkpoint_mode=CHECKPOINT_FILE_MODE, log_mode=LOG_FILE_MODE):
 		assert type(checkpoint) is str, type(checkpoint)
 		assert type(log)        is str, type(checkpoint)
 
