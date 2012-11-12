@@ -19,5 +19,10 @@
   $ python setup.py install --prefix $PREFIX
 #+END_SRC
 
+
+* Example
+
+  See tests/example_test.py
+
 * Licensing
   See the COPYING file.
