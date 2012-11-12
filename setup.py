@@ -14,6 +14,7 @@ setup( author       = "Badi' Abdul-Wahid",
        url          = 'https://bitbucket.org/badi/trax',
        name         = 'trax',
        packages     = ['trax'],
+       test_suite   = 'tests',
        platforms    = ['Linux', 'Mac OS X'],
        description  = 'Transactional logging library'
        )
