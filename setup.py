@@ -6,7 +6,7 @@ See the file COPYING for details.
 """
 
 
-from distutils.core import setup
+from setuptools import setup
 
 
 setup( author       = "Badi' Abdul-Wahid",
