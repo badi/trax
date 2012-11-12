@@ -1,10 +1,11 @@
 
 
-from trax import base
 
-import os, unittest
+from trax import compressed
 
-class ImplTransactional(base.AbstractTransactional):
+import os, unittest, bz2
+
+class ImplTransactional(compressed.AbstractBZ2CompressedTransactional):
 
 	def checkpoint(self, value):
 		self._checkpoint_fd.write(str(value))
@@ -15,19 +16,19 @@ class ImplTransactional(base.AbstractTransactional):
 
 def checkpoint_handler(path):
 	with open(path) as fd:
-		return fd.read()
+		return bz2.decompress(fd.read())
 
 def log_handler(obj, path):
 	with open(path) as fd:
-		return obj + fd.read()
+		return obj + bz2.decompress(fd.read())
 
 
-class TestBaseTransactional(unittest.TestCase):
+class TestBZ2Transactional(unittest.TestCase):
 
 	def setUp(self):
 		self.cpt_path = 'transactional.cpt'
 		self.log_path = 'transactional.log'
-		self.trax = ImplTransactional(checkpoint=self.cpt_path, log=self.log_path)
+		self.trax = ImplTransactional(checkpoint=self.cpt_path, log=self.log_path, checkpoint_mode='w')
 
 	def tearDown(self):
 		self.trax.close()
@@ -41,6 +42,7 @@ class TestBaseTransactional(unittest.TestCase):
 		with self.trax as t:
 			t.checkpoint(cpt)
 			t.log(log)
+			t.log(log)
 
 		recovered = self.trax.recover(checkpoint_handler=checkpoint_handler, log_handler=log_handler)
-		self.assertTrue(recovered == cpt + log + '\n')
+		self.assertTrue(recovered == cpt + log + '\n' + log + '\n')
