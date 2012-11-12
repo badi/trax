@@ -6,15 +6,15 @@ LOG_FILE_MODE = 'a'
 class AbstractTransactional(object):
 
 	def __init__(self, checkpoint=None, log=None):
-		assert type(checkpoint) is str
-		assert type(log)        is str
+		assert type(checkpoint) is str, type(checkpoint)
+		assert type(log)        is str, type(checkpoint)
 
 		self._checkpoint_path = checkpoint
 		self._log_path        = log
 		self._checkpoint_fd   = None
 		self._log_fd          = None
 
-	def _assert_file_modes(checkpoint_mode, log_mode):
+	def _assert_file_modes(self, checkpoint_mode, log_mode):
 		assert self._checkpoint_fd is None
 		assert self._log_fd        is None
 
@@ -29,8 +29,8 @@ class AbstractTransactional(object):
 		self._log_fd         = open(self._log_path       , log_mode)
 
 	def close(self):
-		self._checkpoint_fd.close()
-		self._log_fd.close()
+		self._checkpoint_fd.close() if self._checkpoint_fd is not None else ()
+		self._log_fd.close()        if self._checkpoint_fd is not None else ()
 		self._checkpoint_fd = None
 		self._log_fd        = None
 
@@ -41,10 +41,6 @@ class AbstractTransactional(object):
 
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.close()
-
-	def __del__(self):
-		self.close()
-		object.__del__(self)
 
 
 	def checkpoint(self, value):
