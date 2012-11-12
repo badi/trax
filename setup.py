@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-This file is part of AWE
+This file is part of trax
 Copyright (C) 2012- University of Notre Dame
 This software is distributed under the GNU General Public License.
 See the file COPYING for details.

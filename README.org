@@ -1,0 +1,23 @@
+
+* Description
+
+  A transactional log consists of two components:
+  1. a checkpoint
+  2. an incremental log
+
+  The premise is as follows. The main program may periodically save its state via checkpointing.
+  However, if the time between checkpoints is large (hours or greater), a lot of work may need to be recompute
+  in order to recover. The incremental log solves this problem by logging values between checkpoints.
+  This way, if the program needs to recover, it can load the previous state from the checkpoint and then "fast-forward"
+  by replaying the log.
+  After each checkpoint, the log is flushed as it's state has been saved.
+
+
+* Installation
+
+#+BEGIN_SRC bash
+  $ python setup.py install --prefix $PREFIX
+#+END_SRC
+
+* Licensing
+  See the COPYING file.
