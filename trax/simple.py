@@ -21,7 +21,6 @@ class SimpleTransactional(base.AbstractTransactional):
 	def _impl_log(self, fd, value):
 		fd.write(value)
 
-
 	def _impl_cpt_recover_open(self):
 		mode = 'r' if self._picklemode == 0 else 'rb'
 		return open(self.cpt_path, mode)

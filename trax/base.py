@@ -22,25 +22,9 @@ class AbstractTransactional(object):
 	@property
 	def log_path(self): return self._log_path
 
-	def _assert_file_modes(self, checkpoint_mode, log_mode):
-		assert self._checkpoint_fd is None
-		assert self._log_fd        is None
-
-	def _assert_closed(self):
-		assert self._checkpoint_fd is None
-		assert self._log_fd        is None
-
-	def open(self):
-		self._assert_closed()
-		self._checkpoint_fd  = open(self.cpt_path, self._cpt_mode)
-		self._log_fd         = open(self.log_path, self._log_mode)
-
 	def close(self):
-		self._checkpoint_fd.close() if self._checkpoint_fd is not None else ()
-		self._log_fd.close()        if self._checkpoint_fd is not None else ()
-		self._checkpoint_fd = None
-		self._log_fd        = None
-
+		self._cpt_close()
+		self._log_close()
 
 	def __enter__(self):
 		return self
