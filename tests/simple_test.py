@@ -26,10 +26,9 @@ class  TestSimple(unittest.TestCase):
 					# print 'Checkpointing', state
 					trx.checkpoint(state)
 
-		def log_handler(obj, path):
-			with open(path) as fd:
-				for line in map(str.strip, fd):
-					obj.append(int(line))
+		def log_handler(obj, fd):
+			for line in map(str.strip, fd):
+				obj.append(int(line))
 			return obj
 
 		recovered = trax.recover(log_handler)

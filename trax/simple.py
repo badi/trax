@@ -15,20 +15,21 @@ class SimpleTransactional(base.AbstractTransactional):
 		self._picklemode = picklemode
 		base.AbstractTransactional.__init__(self, *kws)
 
-	def checkpoint(self, value):
-		if self._checkpoint_fd is None:
-			self._checkpoint_fd = open(self.cpt_path, self._cpt_mode)
-		pickle.dump(value, self._checkpoint_fd)
-		self.close()
+	def _impl_checkpoint(self, fd, value):
+		pickle.dump(value, fd)
 
-	def log(self, value):
-		if self._log_fd is None:
-			self._log_fd = open(self.log_path, self._log_mode)
-		self._log_fd.write(value)
+	def _impl_log(self, fd, value):
+		fd.write(value)
+
+
+	def _impl_cpt_recover_open(self):
+		mode = 'r' if self._picklemode == 0 else 'rb'
+		return open(self.cpt_path, mode)
+
+	def _impl_log_recover_open(self):
+		return open(self.log_path)
 
 	def recover(self, log_handler):
-		self.close()
-		mode = 'r' if self._picklemode == 0 else 'rb'
-		with open(self.cpt_path, mode) as fd:
-			obj = pickle.load(fd)
-		return log_handler(obj, self.log_path)
+		def cpt_handler(fd):
+			return pickle.load(fd)
+		return base.AbstractTransactional.recover(self, checkpoint_handler=cpt_handler, log_handler=log_handler)

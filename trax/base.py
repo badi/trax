@@ -49,18 +49,61 @@ class AbstractTransactional(object):
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.close()
 
+	def _log_close(self):
+		if self._log_fd is not None:
+			self._log_fd.close()
+			self._log_fd = None
+
+	def _cpt_close(self):
+		if self._checkpoint_fd is not None:
+			self._checkpoint_fd.close()
+			self._checkpoint_fd = None
+
+	def _log_open(self):
+		if self._log_fd is None:
+			self._log_fd = open(self.log_path, self._log_mode)
+
+	def _cpt_open(self):
+		if self._checkpoint_fd is None:
+			self._checkpoint_fd = open(self.cpt_path, self._cpt_mode)
 
 	def checkpoint(self, value):
+		self._log_close()
+		self._cpt_open()
+		self._impl_checkpoint(self._checkpoint_fd, value)
+		self._cpt_close()
+
+	def _impl_checkpoint(self, fd, value):
 		raise NotImplementedError
 
 	def log(self, value):
+		self._log_open()
+		self._impl_log(self._log_fd, value)
+
+	def _impl_log(self, fd, value):
 		raise NotImplementedError
 
 	def recover(self, checkpoint_handler=None, log_handler=None):
 		"""
-		checkpoint_handler :: FilePath -> IO a
-		log_handler        :: a -> FilePath -> IO a
+		checkpoint_handler :: FileHandle -> IO a
+		log_handler        :: a -> FileHandle -> IO a
 		"""
-		obj = checkpoint_handler(self.cpt_path)
-		obj = log_handler  (obj, self.log_path)
+		self._cpt_close()
+		self._log_close()
+		with self._impl_cpt_recover_open() as fd:
+			obj = checkpoint_handler(fd)
+		with self._impl_log_recover_open() as fd:
+			obj = log_handler(obj, fd)
 		return obj
+
+	def _impl_cpt_recover_open(self):
+		"""
+		:: IO FileHandle
+		"""
+		raise NotImplementedError
+
+	def _impl_log_recover_open(self):
+		"""
+		:: IO FileHandle
+		"""
+		raise NotImplementedError
