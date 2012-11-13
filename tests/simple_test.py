@@ -22,8 +22,8 @@ class  TestSimple(unittest.TestCase):
 
 	def test_example(self):
 
-		trax = simple.SimpleTransactional()
-		with trax as trx:
+		transactional = simple.SimpleTransactional()
+		with transactional as trx:
 			state = []
 			for i in xrange(1000):
 				state.append(i)
