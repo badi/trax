@@ -26,8 +26,9 @@ class  TestSimple(unittest.TestCase):
 		with transactional as trx:
 			state = []
 			for i in xrange(1000):
-				state.append(i)
-				trx.log(str(i) + '\n')
+				v = random.randint(0,100000)
+				state.append(v)
+				trx.log(str(v) + '\n')
 				if i % 50 == 0:
 					trx.checkpoint(state)
 
@@ -36,7 +37,9 @@ class  TestSimple(unittest.TestCase):
 				obj.append(int(line))
 			return obj
 
-		recovered = trax.recover(log_handler)
+		with transactional as trx:
+			recovered = trx.recover(log_handler)
+
 		self.assertTrue( state == recovered )
 
 
