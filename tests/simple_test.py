@@ -29,7 +29,6 @@ class  TestSimple(unittest.TestCase):
 				state.append(i)
 				trx.log(str(i) + '\n')
 				if i % 50 == 0:
-					# print 'Checkpointing', state
 					trx.checkpoint(state)
 
 		def log_handler(obj, fd):
@@ -38,8 +37,6 @@ class  TestSimple(unittest.TestCase):
 			return obj
 
 		recovered = trax.recover(log_handler)
-		# print 'State:', state
-		# print 'Recov:', recovered
 		self.assertTrue( state == recovered )
 
 
