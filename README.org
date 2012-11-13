@@ -22,7 +22,7 @@
 
 * Example
 
-  See tests/example_test.py
+  See tests/simple_test.py
 
 * Licensing
   See the COPYING file.
