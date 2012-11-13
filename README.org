@@ -53,10 +53,11 @@ with logger as trx:
   $ python setup.py install --prefix $PREFIX
 #+END_SRC
 
+Make sure to update the =$PYHTONPATH= environmental variable to include =$PREFIX/lib/python$PYVERSION/site-packages=
 
 * Example
 
-  See tests/simple_test.py
+  See =tests/simple_test.py=
 
 * Licensing
   See the COPYING file.
