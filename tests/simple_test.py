@@ -1,5 +1,5 @@
 
-from trax import simple
+import trax
 
 import os, random, unittest
 
@@ -22,7 +22,7 @@ class  TestSimple(unittest.TestCase):
 
 	def test_example(self):
 
-		transactional = simple.SimpleTransactional()
+		transactional = trax.SimpleTransactional()
 		with transactional as trx:
 			state = []
 			for i in xrange(1000):
