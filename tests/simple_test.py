@@ -8,10 +8,16 @@ import os, random, unittest
 
 class  TestSimple(unittest.TestCase):
 
-	def setUp(self):
+	def clean(self):
 		for p in ['transactional.cpt', 'transactional.log']:
 			if os.path.exists(p):
 				os.unlink(p)
+
+	def setUp(self):
+		self.clean()
+
+	def tearDown(self):
+		self.clean()
 
 
 	def test_example(self):
