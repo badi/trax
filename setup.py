@@ -13,7 +13,7 @@ from setuptools import setup
 
 setup( author       = "Badi' Abdul-Wahid",
        author_email = 'abdulwahidc@gmail.com',
-       url          = 'https://bitbucket.org/badi/trax',
+       url          = 'https://github.com/badi/trax',
        name         = 'trax',
        packages     = ['trax'],
        test_suite   = 'tests',
