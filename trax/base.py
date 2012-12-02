@@ -1,7 +1,7 @@
 
 
-CHECKPOINT_FILE_MODE = 'w'
-LOG_FILE_MODE = 'w'
+CHECKPOINT_FILE_MODE = 'wb'
+LOG_FILE_MODE = 'wb'
 
 class AbstractTransactional(object):
 
