@@ -4,6 +4,8 @@ import trax
 import os, random, unittest
 
 
+import cPickle as pickle
+
 
 
 class  TestSimple(unittest.TestCase):
@@ -28,13 +30,17 @@ class  TestSimple(unittest.TestCase):
 			for i in xrange(1000):
 				v = random.randint(0,100000)
 				state.append(v)
-				trx.log(str(v) + '\n')
+				trx.log(v)
 				if i % 50 == 0:
 					trx.checkpoint(state)
 
 		def log_handler(obj, fd):
-			for line in map(str.strip, fd):
-				obj.append(int(line))
+			while True:
+				try:
+					v = pickle.load(fd)
+					obj.append(v)
+				except EOFError:
+					break
 			return obj
 
 		with transactional as trx:
