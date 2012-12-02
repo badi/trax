@@ -9,17 +9,18 @@ except ImportError:
 
 class SimpleTransactional(base.AbstractTransactional):
 
-	def __init__(self, picklemode=0, **kws):
+	def __init__(self, picklemode=0, pickleprotocol=0, **kws):
 		assert type(picklemode) is int
 		assert picklemode >= 0
 		self._picklemode = picklemode
+		self._pickleprotocol = pickleprotocol
 		base.AbstractTransactional.__init__(self, *kws)
 
 	def _impl_checkpoint(self, fd, value):
-		pickle.dump(value, fd)
+		pickle.dump(value, fd, protocol=self._pickleprotocol)
 
 	def _impl_log(self, fd, value):
-		fd.write(value)
+		pickle.dump(value, fd, protocol=self._pickleprotocol)
 
 	def _impl_cpt_recover_open(self):
 		mode = 'r' if self._picklemode == 0 else 'rb'
