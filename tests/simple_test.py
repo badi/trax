@@ -22,7 +22,7 @@ class  TestSimple(unittest.TestCase):
 
 	def test_example(self):
 
-		transactional = trax.SimpleTransactional()
+		transactional = trax.SimpleTransactional(pickleprotocol=-1)
 		with transactional as trx:
 			state = []
 			for i in xrange(1000):
