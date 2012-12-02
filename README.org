@@ -30,21 +30,16 @@
   A basic usage pattern is as follows:
 #+BEGIN_SRC python
 import trax
-
-def log_handler(mystate, file_handle):
-    for value in file_handle:
-	    mystate.update(typed(value))
-	return mystate
+import cPickle as pickle
 
 logger = trax.SimpleTransactional()
-mystate = logger.recover(log_handler)
+mystate = logger.recover(lambda mystate, value: mystate.update(value))
 
-with logger as trx:
-    value = expensive_compute_function()
-    mystate.update(value)
-    trx.log(value)
-    if time % frequency == 0:
-	    trx.checkpoint(mystate)
+value = expensive_compute_function()
+mystate.update(value)
+trx.log(value)
+if time % frequency == 0:
+    trx.checkpoint(mystate)
 #+END_SRC
 
 * Installation
