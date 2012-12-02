@@ -29,7 +29,17 @@ class SimpleTransactional(base.AbstractTransactional):
 	def _impl_log_recover_open(self):
 		return open(self.log_path)
 
-	def recover(self, log_handler):
+	def recover(self, value_handler):
 		def cpt_handler(fd):
 			return pickle.load(fd)
+
+		def log_handler(obj, fd):
+			while True:
+				try:
+					value = pickle.load(fd)
+					value_handler(obj, value)
+				except EOFError:
+					break
+			return obj
+
 		return base.AbstractTransactional.recover(self, checkpoint_handler=cpt_handler, log_handler=log_handler)
