@@ -8,7 +8,7 @@ See the file COPYING for details.
 """
 
 
-from setuptools import setup
+from distutils.core import setup
 
 
 setup( author       = "Badi' Abdul-Wahid",
