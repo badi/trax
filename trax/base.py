@@ -7,7 +7,7 @@ class AbstractTransactional(object):
 
 	def __init__(self, checkpoint='transactional.cpt', log='transactional.log', checkpoint_mode=CHECKPOINT_FILE_MODE, log_mode=LOG_FILE_MODE):
 		assert type(checkpoint) is str, type(checkpoint)
-		assert type(log)        is str, type(checkpoint)
+		assert type(log)        is str, type(log)
 
 		self._checkpoint_path = checkpoint
 		self._log_path        = log
