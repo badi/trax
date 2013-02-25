@@ -16,7 +16,7 @@ class SimpleTransactional(base.AbstractTransactional):
 		assert picklemode >= 0
 		self._picklemode = picklemode
 		self._pickleprotocol = pickleprotocol
-		base.AbstractTransactional.__init__(self, *kws)
+		base.AbstractTransactional.__init__(self, **kws)
 
 	def _impl_checkpoint(self, fd, value):
 		pickle.dump(value, fd, protocol=self._pickleprotocol)
