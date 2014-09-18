@@ -18,28 +18,26 @@
   Semantics are as follows:
     - Each call to *checkpoint* saves the current state and clears the log file
     - A call to *log* saves the value to the log file
-    - *recover* operates by accepting two callback functions, each operation a file descriptor.
-	    - The *checkpoint_handler* accepts a file descriptor to the checkpoint file and returns the state with is passed to *log_handler*.
-	    - *log_handler* accepts the state and a file descriptor to the log file and is responsible for replaying the log.
-
-  The *trax.SimpleTransactional* class should cover most usage
-  requirements. It operates by using /cPickle/ (if it is not
-  available then /pickle/ is used) to *checkpoint*, but the user is
-  responsible for providing the *log_handler* callback.
+    - *recover* operates by accepting two callback functions.
+            - the first creates the value if it is not yet stored.
+	    - the second replays the log onto the checkpointed state.
 
   A basic usage pattern is as follows:
 #+BEGIN_SRC python
 import trax
-import cPickle as pickle
 
-logger = trax.SimpleTransactional()
-mystate = logger.recover(lambda mystate, value: mystate.update(value))
+logger = trax.Trax()
 
-value = expensive_compute_function()
-mystate.update(value)
-trx.log(value)
-if time % frequency == 0:
-    trx.checkpoint(mystate)
+# if 'world' is not yet stored, this will store it before returning
+# otherwise 'world' is loaded from the store
+hello = logger.recover('hello', create=lambda:'world')
+
+logger.checkpoint(existence='u')
+for c in 'niverse':
+    logger.log(existence=c)
+
+existence = logger.recover('existence', create=lambda: universe, replay_log=lambda state, log: state + log)
+# existence == 'universe'
 #+END_SRC
 
 * Installation
@@ -49,10 +47,6 @@ if time % frequency == 0:
 #+END_SRC
 
 Make sure to update the =$PYHTONPATH= environmental variable to include =$PREFIX/lib/python$PYVERSION/site-packages=
-
-* Example
-
-  See =tests/simple_test.py=
 
 * Licensing
   See the COPYING file.

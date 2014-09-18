@@ -1,92 +1,100 @@
 
+import pxul
 
-CHECKPOINT_FILE_MODE = 'wb'
-LOG_FILE_MODE = 'wb'
+from collections import defaultdict
+import cPickle as pickle
+import os
 
-class AbstractTransactional(object):
+__package = 'trax'
 
-	def __init__(self, checkpoint='transactional.cpt', log='transactional.log', checkpoint_mode=CHECKPOINT_FILE_MODE, log_mode=LOG_FILE_MODE):
-		assert type(checkpoint) is str, type(checkpoint)
-		assert type(log)        is str, type(log)
 
-		self._checkpoint_path = checkpoint
-		self._log_path        = log
-		self._cpt_mode        = checkpoint_mode
-		self._log_mode        = log_mode
-		self._checkpoint_fd   = None
-		self._log_fd          = None
+def debug(string):
+    pxul.logging.logger.debug('[{package}] {msg}'.format(package=__package, msg=string))
 
-	@property
-	def cpt_path(self): return self._checkpoint_path
+class Trax(object):
 
-	@property
-	def log_path(self): return self._log_path
+    def __init__(self, traxdir='.trax'):
+        self._traxdir = traxdir
+        self._logcount = defaultdict(lambda: 0)
 
-	def close(self):
-		self._cpt_close()
-		self._log_close()
+    def _path(self, name):
+        return os.path.join(self._traxdir, name)
 
-	def __enter__(self):
-		return self
+    def _cpt(self, name):
+        return self._path(name) + '.cpt'
 
-	def __exit__(self, exc_type, exc_value, traceback):
-		self.close()
+    def _logdir(self, name):
+        return self._path(name)
 
-	def _log_close(self):
-		if self._log_fd is not None:
-			self._log_fd.close()
-			self._log_fd = None
+    def _log(self, name, i):
+        logdir = self._logdir(name)
+        logpath = os.path.join(logdir, str(i)) + '.log'
+        return logpath
 
-	def _cpt_close(self):
-		if self._checkpoint_fd is not None:
-			self._checkpoint_fd.close()
-			self._checkpoint_fd = None
+    def _logpaths(self, name):
+        for i in xrange(self._logcount[name]):
+            yield self._log(name, i)
 
-	def _log_open(self):
-		if self._log_fd is None:
-			self._log_fd = open(self.log_path, self._log_mode)
+    def _clear_log(self, name):
+        while self._logcount[name] > 0:
+            i = self._logcount[name] - 1
+            path = self._log(name, i)
+            os.unlink(path)
+            self._logcount[name] -= 1
+        os.rmdir(self._logdir(name))
+        debug("Cleared log for '{}'".format(name))
 
-	def _cpt_open(self):
-		if self._checkpoint_fd is None:
-			self._checkpoint_fd = open(self.cpt_path, self._cpt_mode)
+    def _write(self, obj, path):
+        p = os.path.abspath(path)
+        pxul.os.ensure_dir(os.path.dirname(p))
+        with open(p, 'wb') as fd:
+            pickle.dump(obj, fd, protocol=pickle.HIGHEST_PROTOCOL)
+        debug('Stored value in {}'.format(path))
 
-	def checkpoint(self, value):
-		self._log_close()
-		self._cpt_open()
-		self._impl_checkpoint(self._checkpoint_fd, value)
-		self._cpt_close()
+    def _read(self, path):
+        with open(path, 'rb') as fd:
+            obj = pickle.load(fd)
+        debug('Loaded value in {}'.format(path))
+        return obj
 
-	def _impl_checkpoint(self, fd, value):
-		raise NotImplementedError
+    def checkpoint(self, **kws):
+        "Checkpoint a 'name'->value and clear the logs for 'name'"
+        for name, val in kws.iteritems():
+            cpt = self._cpt(name)
+            self._write(val, cpt)
+            self._clear_log(name)
 
-	def log(self, value):
-		self._log_open()
-		self._impl_log(self._log_fd, value)
+    def log(self, **kws):
+        "Log a 'name'->value"
+        for name, val in kws.iteritems():
+            log = self._log(name, self._logcount[name])
+            self._write(val, log)
+            self._logcount[name] += 1
 
-	def _impl_log(self, fd, value):
-		raise NotImplementedError
+    def recover(self, name, create=None, replay_log=lambda state, log: log):
+        """
+        Recover 'name's value from a checkpoint and then replay the log.
 
-	def recover(self, checkpoint_handler=None, log_handler=None):
-		"""
-		checkpoint_handler :: FileHandle -> IO a
-		log_handler        :: a -> FileHandle -> IO a
-		"""
-		self._cpt_close()
-		self._log_close()
-		with self._impl_cpt_recover_open() as fd:
-			obj = checkpoint_handler(fd)
-		with self._impl_log_recover_open() as fd:
-			obj = log_handler(obj, fd)
-		return obj
+        Parameters:
+          name :: str : the name of the value
+          create :: fun() -> a: a 0-ary function to create the value if it is not in Trax
+          replay_log :: state -> log -> state: function to fold over the log values to update the state
 
-	def _impl_cpt_recover_open(self):
-		"""
-		:: IO FileHandle
-		"""
-		raise NotImplementedError
+        Returns
+          The state of the checkpoint with the logs replayed.
+        """
 
-	def _impl_log_recover_open(self):
-		"""
-		:: IO FileHandle
-		"""
-		raise NotImplementedError
+        if create is None:
+            raise ValueError, "'create' must not be None"
+
+        cpt = self._cpt(name)
+        if not os.path.exists(cpt):
+            state = create()
+            self.checkpoint(**{name:state})
+            return state
+        else:
+            state = self._read(cpt)
+            for logpath in self._logpaths(name):
+                log = self._read(logpath)
+                state = replay_log(state, log)
+            return state

@@ -1,1 +1,1 @@
-from simple import SimpleTransactional
+from base import Trax
